@@ -51,6 +51,10 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // fetchRates() syncs with an external system (the exchange-rate API);
+    // setLoading/setError firing synchronously on call is expected and
+    // correct here, not a cascading-render bug.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchRates();
     // Long-lived tabs (someone leaves Hermes open overnight) shouldn't drift
     // on stale rates — refresh on the same hourly cadence as the API cache.

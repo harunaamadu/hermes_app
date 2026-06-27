@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "../../ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ShoppingCart02Icon } from "@hugeicons/core-free-icons";
 import NavBadge from "./NavBadge";
 import Link from "next/link";
+import { useCartStore } from "@/store/useCartStore";
 
 const CartButton = () => {
-  const [count] = useState(100);
+  const count = useCartStore((s) => s.itemCount());
 
   return (
     <div className="relative">

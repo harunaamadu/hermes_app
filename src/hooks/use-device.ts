@@ -1,22 +1,15 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { DeviceType, getDeviceType } from "@/lib/constants";
 
+function subscribe(callback: () => void) {
+  window.addEventListener("resize", callback);
+  return () => window.removeEventListener("resize", callback);
+}
+
+function getServerSnapshot(): DeviceType {
+  return "desktop";
+}
+
 export const useDeviceType = () => {
-  const [device, setDevice] =
-    useState<DeviceType>("desktop");
-
-  useEffect(() => {
-    const update = () => {
-      setDevice(getDeviceType());
-    };
-
-    update();
-
-    window.addEventListener("resize", update);
-
-    return () =>
-      window.removeEventListener("resize", update);
-  }, []);
-
-  return device;
+  return useSyncExternalStore(subscribe, getDeviceType, getServerSnapshot);
 };

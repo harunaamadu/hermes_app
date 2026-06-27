@@ -32,7 +32,7 @@ export default function LocaleDialog({ open, onOpenChange }: LocaleDialogProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-w-sm z-300">
         <DialogHeader>
           <DialogTitle>Choose your location</DialogTitle>
         </DialogHeader>

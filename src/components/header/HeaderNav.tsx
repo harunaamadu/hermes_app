@@ -225,7 +225,7 @@ export default function HeaderNav({
 
             <FadeIn
               show={isMoreOpen}
-              className="absolute right-0 top-full z-50 mt-2 min-w-56 border bg-background py-2 shadow-lg"
+              className="absolute right-0 top-full z-250 mt-2 min-w-56 border bg-background py-2 shadow-lg"
             >
               <StaggerChildren>
                 {overflowItems.map((item) => (
