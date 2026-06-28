@@ -1,10 +1,14 @@
+"use client";
+
 import { cn } from "@/lib/utils";
-import { formatPrice, calcDiscountPercent } from "@/lib/product/format";
+import { useCurrency } from "@/components/providers/CurrencyProvider";
+import { Skeleton } from "@/components/ui/skeleton";
+import { calcDiscountPercent } from "@/lib/currency";
 
 interface PriceTagProps {
+  /** Amount in the catalog's base currency (USD) — never pass an already-converted value. */
   price: number;
   originalPrice?: number;
-  currency?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
 }
@@ -15,16 +19,16 @@ const SIZE_MAP = {
   lg: { whole: "text-3xl", fraction: "text-base", symbol: "text-base" },
 };
 
-export function PriceTag({
-  price,
-  originalPrice,
-  currency = "$",
-  size = "md",
-  className,
-}: PriceTagProps) {
-  const { whole, fraction } = formatPrice(price);
-  const discount = calcDiscountPercent(price, originalPrice);
+export function PriceTag({ price, originalPrice, size = "sm", className }: PriceTagProps) {
+  const { formatParts, format, loading } = useCurrency();
   const sizes = SIZE_MAP[size];
+  const discount = calcDiscountPercent(price, originalPrice);
+
+  if (loading) {
+    return <Skeleton className={cn("h-6 w-24", className)} />;
+  }
+
+  const { symbol, whole, fraction } = formatParts(price);
 
   return (
     <div className={cn("flex flex-wrap items-baseline gap-x-2", className)}>
@@ -34,14 +38,14 @@ export function PriceTag({
             -{discount}%
           </span>
         )}
-        <span className={cn(sizes.symbol, "self-start")}>{currency}</span>
+        <span className={cn(sizes.symbol, "self-start")}>{symbol}</span>
         <span className={sizes.whole}>{whole}</span>
-        <span className={cn(sizes.fraction, "self-start")}>{fraction}</span>
+        {fraction && <span className={cn(sizes.fraction, "self-start")}>{fraction}</span>}
       </div>
-      {originalPrice && originalPrice > price && (
-        <span className="text-sm text-muted-foreground line-through">
-          {currency}
-          {originalPrice.toFixed(2)}
+
+      {originalPrice !== undefined && originalPrice > price && (
+        <span className="text-xs text-muted-foreground line-through">
+          {format(originalPrice)}
         </span>
       )}
     </div>

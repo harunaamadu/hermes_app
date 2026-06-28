@@ -4,12 +4,15 @@ import StaggerChildren from "../animations/StaggerChildren";
 import { CategoryGrid } from "@/components/product/CategoryGrid";
 import { ProductRow } from "@/components/product/ProductRow";
 import { ProductGrid } from "@/components/product/ProductGrid";
+import { categories } from "@/data/categories";
+import { bestSellers, deals, recommended } from "@/data/products";
 
 const FeaturedCategoriesSection = () => {
   return (
     <Container className="min-h-screen">
       <StaggerChildren>
-        <CategoryGrid categories={categories} />
+        <CategoryGrid categories={categories.slice(0, 4)} />
+
         <ProductRow
           title="Today's deals"
           seeAllHref="/deals"

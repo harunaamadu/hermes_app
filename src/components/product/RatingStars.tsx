@@ -13,8 +13,8 @@ interface RatingStarsProps {
 }
 
 const SIZE_CLASS = {
-  sm: "h-3.5 w-3.5",
-  md: "h-4 w-4",
+  sm: "size-3",
+  md: "size-4",
 };
 
 export function RatingStars({
@@ -37,7 +37,7 @@ export function RatingStars({
             <span key={i} className="relative inline-flex">
               <HugeiconsIcon
                 icon={StarIcon}
-                size={24}
+                size={16}
                 color="currentColor"
                 strokeWidth={1.5}
                 className={cn(SIZE_CLASS[size], "text-muted-foreground/30")}
@@ -49,7 +49,7 @@ export function RatingStars({
                 >
                   <HugeiconsIcon
                     icon={StarIcon}
-                    size={24}
+                    size={16}
                     color="currentColor"
                     strokeWidth={1.5}
                     className={cn(

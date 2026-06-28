@@ -8,24 +8,51 @@ import { ExchangeRates } from "@/types/currency";
 interface CurrencyContextValue {
   rates: ExchangeRates | null;
   loading: boolean;
-  /** Set when live rates couldn't be fetched and we've fallen back to 1:1 — show this to the user if you display prices prominently. */
   error: string | null;
-  /** Converts a base-currency (USD) amount into the user's active currency. Use `format` instead unless you need the raw number. */
   convert: (amountInBase: number) => number;
-  /** Converts + formats in one call. This is the function nearly every component should use. */
   format: (amountInBase: number) => string;
+  /** Converts + formats, but returns the symbol/whole/fraction as separate
+   * strings instead of one combined string — for split-digit price displays
+   * (e.g. Amazon-style PriceTag) that need to style each piece differently. */
+  formatParts: (amountInBase: number) => { symbol: string; whole: string; fraction: string };
   refresh: () => void;
 }
 
 const CurrencyContext = createContext<CurrencyContextValue | null>(null);
 
-// Used while rates are loading or if the fetch fails — keeps prices rendering
-// (unconverted, in USD) rather than crashing or showing blank values.
 const FALLBACK_RATES: ExchangeRates = {
   base: "USD",
   rates: { USD: 1 },
   fetchedAt: 0,
 };
+
+// Locale is pinned rather than left undefined (which would fall back to the
+// runtime's default locale). Letting it float is a real risk here: Next.js
+// renders "use client" components on the server for the initial HTML too,
+// so if the server's default locale differs from the browser's, the digits
+// or symbol placement can mismatch between SSR output and client hydration.
+// Swap this for a locale from useLocaleStore if you track one explicitly.
+function formatCurrencyParts(amount: number, currencyCode: string, locale = "en-US") {
+  const parts = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: currencyCode,
+    currencyDisplay: "narrowSymbol", // "$" rather than "US$" where supported
+  }).formatToParts(amount);
+
+  let symbol = "";
+  let whole = "";
+  let fraction = "";
+
+  for (const part of parts) {
+    if (part.type === "currency") symbol += part.value;
+    else if (part.type === "integer" || part.type === "group") whole += part.value;
+    else if (part.type === "fraction") fraction += part.value;
+    // part.type === "decimal" (the "." separator) is intentionally dropped —
+    // whole/fraction render in separate styled spans, not as inline text.
+  }
+
+  return { symbol, whole, fraction };
+}
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const currency = useLocaleStore((s) => s.currency);
@@ -51,13 +78,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // fetchRates() syncs with an external system (the exchange-rate API);
-    // setLoading/setError firing synchronously on call is expected and
-    // correct here, not a cascading-render bug.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchRates();
-    // Long-lived tabs (someone leaves Hermes open overnight) shouldn't drift
-    // on stale rates — refresh on the same hourly cadence as the API cache.
     const interval = setInterval(fetchRates, 1000 * 60 * 60);
     return () => clearInterval(interval);
   }, [fetchRates]);
@@ -74,8 +96,13 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     [convert, currency.code],
   );
 
+  const formatParts = useCallback(
+    (amountInBase: number) => formatCurrencyParts(convert(amountInBase), currency.code),
+    [convert, currency.code],
+  );
+
   return (
-    <CurrencyContext.Provider value={{ rates, loading, error, convert, format, refresh: fetchRates }}>
+    <CurrencyContext.Provider value={{ rates, loading, error, convert, format, formatParts, refresh: fetchRates }}>
       {children}
     </CurrencyContext.Provider>
   );

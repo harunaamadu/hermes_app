@@ -13,11 +13,11 @@ export function CategoryTile({ category, className }: CategoryTileProps) {
     <Link
       href={category.href ?? `/category/${category.slug}`}
       className={cn(
-        "group flex flex-col gap-3 rounded-xl border bg-card p-4 transition-shadow hover:shadow-md",
-        className
+        "group flex flex-col gap-3 bg-card p-2 transition-shadow hover:shadow-md",
+        className,
       )}
     >
-      <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-muted">
+      <div className="relative aspect-square w-full overflow-hidden bg-muted">
         <Image
           src={category.image}
           alt={category.title}
@@ -27,9 +27,8 @@ export function CategoryTile({ category, className }: CategoryTileProps) {
         />
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-foreground">{category.title}</span>
-        <span className="text-xs font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
-          Shop now
+        <span className="text-sm font-semibold text-foreground">
+          {category.title}
         </span>
       </div>
     </Link>

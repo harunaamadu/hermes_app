@@ -57,10 +57,18 @@ hermes/
     │   │       └── Footer.tsx
     │   ├── marketing/...
     │   ├── product/
-    │   │   ├── ProductCard.tsx                 # Now reads useLocaleStore for price formatting
-    │   │   ├── ProductGallery.tsx
-    │   │   ├── ProductReviews.tsx
-    │   │   └── AddToCartButton.tsx
+    │       ├── ProductCard.tsx              # Single card: image, price, rating, badge
+    │       ├── ProductCardSkeleton.tsx
+    │       ├── ProductGrid.tsx              # Static grid (e.g. "Today's deals" 4x2)
+    │       ├── ProductCarousel.tsx          # Horizontally scrollable row (embla-based)
+    │       ├── ProductCarouselSkeleton.tsx
+    │       ├── ProductRow.tsx               # Wrapper: title + "See all" + ProductCarousel
+    │       ├── CategoryTile.tsx             # Single category card (image + label)
+    │       ├── CategoryGrid.tsx             # "Shop by category" grid
+    │       ├── PriceTag.tsx                 # Price + strikethrough + discount %
+    │       ├── RatingStars.tsx
+    │       ├── WishlistButton.tsx
+    │       └── QuickAddButton.tsx
     │   └── shared/
     │       ├── Navbar.tsx
     │       ├── PriceTag.tsx                    # Now currency-aware: converts + formats per locale

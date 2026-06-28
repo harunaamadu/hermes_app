@@ -1,11 +1,13 @@
 import Hero from "@/components/home/Hero";
-import FeaturedCategoriesSection from "@/components/marketing/FeaturedCategoriesSection";
+import { ShopSectionsGrid } from "@/components/home/shop-sections";
+import ProductsSection from "@/components/home/shop-sections/ProductsSection";
 
 export default function Home() {
   return (
-    <main className="min-h-[400svh] relative">
+    <main className="min-h-full relative">
       <Hero />
-      <FeaturedCategoriesSection />
+      <ShopSectionsGrid />
+      <ProductsSection />
     </main>
   );
 }
