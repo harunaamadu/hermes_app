@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useActionState, useState } from "react";
 import Container from "@/components/common/Container";
 import {
   LockKeyIcon,
@@ -12,8 +12,10 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
+  FieldLegend,
   FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -22,8 +24,13 @@ import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import SignWith from "@/components/auth/SignWith";
 import Reveal from "@/components/animations/Reveal";
+import { loginWithCredentials } from "@/actions/auth";
 
 const LoginClient = () => {
+  const [state, formAction, pending] = useActionState(
+    loginWithCredentials,
+    undefined,
+  );
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -57,7 +64,10 @@ const LoginClient = () => {
                 Sign In
               </h2>
 
-              <form onSubmit={handleSubmit}>
+              <form action={formAction}>
+                <FieldLegend>
+                  {state?.error && <FieldError>{state.error}</FieldError>}
+                </FieldLegend>
                 <FieldSet className="w-full">
                   <FieldGroup>
                     <Field>
@@ -80,6 +90,7 @@ const LoginClient = () => {
                           className="pl-8"
                         />
                       </div>
+
                       <FieldDescription>
                         Sign in with your username or the email on your account.
                       </FieldDescription>
@@ -132,8 +143,13 @@ const LoginClient = () => {
                     </Link>
                   </div>
 
-                  <Button type="submit" size="lg" className="mt-4">
-                    Sign in
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="mt-4"
+                    disabled={pending}
+                  >
+                    {pending ? "Signing in" : "Sign in"}
                   </Button>
                 </FieldSet>
               </form>

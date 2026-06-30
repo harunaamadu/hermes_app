@@ -10,7 +10,7 @@ import Reveal from "../animations/Reveal";
 
 const Header = () => {
   return (
-    <Reveal direction="down">
+    <Reveal variant="down">
       <header className="w-full">
         <HeaderAnnouncement />
 

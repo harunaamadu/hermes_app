@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import React from "react";
 
-type ContainerElement = "div" | "section" | "article";
+type ContainerElement = "div" | "section" | "article" | "main";
 
 interface ContainerProps extends React.ComponentProps<"div"> {
   as?: ContainerElement;

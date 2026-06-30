@@ -1,22 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 // import { showToast } from "@/lib/toast";
 // import { loginWithCredentials, loginWithGoogle } from "@/actions/auth";
 
 import React from "react";
 import { Button } from "../ui/button";
+import { loginWithGoogle } from "@/actions/auth";
 
 const SignWith = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  const handleSignIn = async () => {
+    setLoading(true);
+    await loginWithGoogle();
+  };
+
   return (
-    <form action={`#`}>
+    <form action={handleSignIn}>
       <Button
         variant={`outline`}
         size={`lg`}

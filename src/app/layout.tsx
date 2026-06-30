@@ -3,9 +3,10 @@ import { Geist_Mono, Geom, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Header from "@/components/header/Header";
 import { CurrencyProvider } from "@/components/providers/CurrencyProvider";
 import MobileBottomNav from "@/components/header/ui/MobileBottomNav";
+import Providers from "@/components/providers/providers";
+import LayoutContent from "./LayoutContent";
 
 const geomHeading = Geom({
   subsets: ["latin"],
@@ -40,13 +41,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="w-full" suppressHydrationWarning>
-        <CurrencyProvider>
-          <TooltipProvider>
-            <Header />
-            <MobileBottomNav />
-            {children}
-          </TooltipProvider>
-        </CurrencyProvider>
+        <Providers>
+          <CurrencyProvider>
+            <TooltipProvider>
+              <MobileBottomNav />
+              <LayoutContent>{children}</LayoutContent>
+            </TooltipProvider>
+          </CurrencyProvider>
+        </Providers>
       </body>
     </html>
   );

@@ -1,31 +1,23 @@
-import type { NextAuthConfig } from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 
-export const authConfig: NextAuthConfig = {
+export const authConfig: NextAuthOptions = {
   pages: {
     signIn: "/dashboard/account",
   },
   session: { strategy: "jwt" },
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      const role = auth?.user?.role;
-
-      const isAuthRoute = nextUrl.pathname.startsWith("/dashboard/account");
-      const isSellerRoute = nextUrl.pathname.startsWith("/dashboard/seller");
-      const isProtected = nextUrl.pathname.startsWith("/dashboard");
-
-      if (isAuthRoute && isLoggedIn) {
-        return Response.redirect(new URL("/dashboard", nextUrl));
+    jwt: async ({ token, user }) => {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
       }
-      if (isSellerRoute && role !== "SELLER" && role !== "ADMIN") {
-        return Response.redirect(new URL("/dashboard", nextUrl));
-      }
-      if (isProtected && !isAuthRoute && !isLoggedIn) {
-        return Response.redirect(new URL("/dashboard/account", nextUrl));
-      }
-      return true;
+      return token;
     },
-    // jwt/session callbacks unchanged — they already pass role through
+    session: async ({ session, token }) => {
+      session.user.id = token.id as string;
+      session.user.role = token.role as unknown as any;
+      return session;
+    },
   },
   providers: [], // populated in auth.ts — keep this empty here
 };

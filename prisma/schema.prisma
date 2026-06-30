@@ -5,9 +5,366 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// Auth.js (NextAuth) — required shape for @auth/prisma-adapter
+// ────────────────────────────────────────────────────────────────────────────
+
+enum Role {
+  CUSTOMER
+  SELLER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  /// Only set for credentials accounts; null for OAuth-only users.
+  password      String?
+  role          Role      @default(CUSTOMER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+
+  sellerProfile SellerProfile?
+
+  addresses Address[]
+  cart      Cart?
+  orders    Order[]
+  reviews   Review[]
+  wishlist  WishlistItem[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Marketplace — sellers, catalog, reviews, wishlist
+// ────────────────────────────────────────────────────────────────────────────
+
+model SellerProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  storeName String
+  slug      String   @unique
+  bio       String?  @db.Text
+  logoUrl   String?
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products Product[]
+
+  @@map("seller_profiles")
+}
+
+model Category {
+  id    String  @id @default(cuid())
+  name  String
+  slug  String  @unique
+  image String?
+
+  // Self-relation lets categories nest (e.g. "Bags" -> "Mini Bags").
+  parentId String?
+  parent   Category?  @relation("CategoryToSubcategory", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[] @relation("CategoryToSubcategory")
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Brand {
+  id      String  @id @default(cuid())
+  name    String
+  slug    String  @unique
+  logoUrl String?
+
+  products Product[]
+
+  @@map("brands")
+}
+
+enum ProductBadge {
+  BEST_SELLER
+  NEW
+  SALE
+  LIMITED
+  PRIME
+  HOT
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String? @db.Text
+
+  brandId    String?
+  brand      Brand?        @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  categoryId String
+  category   Category      @relation(fields: [categoryId], references: [id])
+  sellerId   String
+  seller     SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  price         Decimal  @db.Decimal(10, 2)
+  originalPrice Decimal? @db.Decimal(10, 2)
+  currency      String   @default("USD")
+
+  badge ProductBadge?
+
+  inStock      Boolean @default(true)
+  stockCount   Int     @default(0)
+  freeShipping Boolean @default(false)
+  deliveryDays Int?
+  sold         Int     @default(0)
+
+  isTrending Boolean @default(false)
+
+  images     ProductImage[]
+  variants   ProductVariant[]
+  reviews    Review[]
+  wishlist   WishlistItem[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([sellerId])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  position  Int     @default(0)
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+model ProductVariant {
+  id         String  @id @default(cuid())
+  productId  String
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  label      String // e.g. "Size", "Color"
+  value      String // e.g. "M", "Black"
+  sku        String? @unique
+  priceDelta Decimal @default(0) @db.Decimal(10, 2)
+  stockCount Int     @default(0)
+  inStock    Boolean @default(true)
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([productId])
+  @@map("product_variants")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int // 1–5
+  title     String?
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@unique([productId, userId])
+  @@index([productId])
+  @@map("reviews")
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@map("wishlist_items")
+}
+
+// Cart & checkout
+// ────────────────────────────────────────────────────────────────────────────
+
+model Cart {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String          @id @default(cuid())
+  cartId    String
+  cart      Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  quantity  Int             @default(1)
+  addedAt   DateTime        @default(now())
+
+  @@unique([cartId, productId, variantId])
+  @@map("cart_items")
+}
+
+enum AddressType {
+  SHIPPING
+  BILLING
+}
+
+model Address {
+  id         String      @id @default(cuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       AddressType @default(SHIPPING)
+  fullName   String
+  line1      String
+  line2      String?
+  city       String
+  state      String?
+  postalCode String
+  country    String // ISO 3166-1 alpha-2
+  phone      String?
+  isDefault  Boolean     @default(false)
+
+  shippingOrders Order[] @relation("OrderShippingAddress")
+  billingOrders  Order[] @relation("OrderBillingAddress")
+
+  @@map("addresses")
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+model Order {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status   OrderStatus @default(PENDING)
+  subtotal Decimal     @db.Decimal(10, 2)
+  discount Decimal     @default(0) @db.Decimal(10, 2)
+  shipping Decimal     @default(0) @db.Decimal(10, 2)
+  total    Decimal     @db.Decimal(10, 2)
+  currency String      @default("USD")
+
+  couponId String?
+  coupon   Coupon? @relation(fields: [couponId], references: [id], onDelete: SetNull)
+
+  shippingAddressId String
+  shippingAddress   Address  @relation("OrderShippingAddress", fields: [shippingAddressId], references: [id])
+  billingAddressId  String?
+  billingAddress    Address? @relation("OrderBillingAddress", fields: [billingAddressId], references: [id])
+
+  items OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String          @id @default(cuid())
+  orderId   String
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product         @relation(fields: [productId], references: [id])
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  quantity  Int
+  /// Price at time of purchase — snapshot, decoupled from the live Product price.
+  price     Decimal         @db.Decimal(10, 2)
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Coupon {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  discountPercent Int? // 1–100
+  discountAmount  Decimal?  @db.Decimal(10, 2)
+  minOrderTotal   Decimal?  @db.Decimal(10, 2)
+  usageLimit      Int?
+  usedCount       Int       @default(0)
+  expiresAt       DateTime?
+  active          Boolean   @default(true)
+
+  orders Order[]
+
+  @@map("coupons")
 }
