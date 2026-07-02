@@ -67,7 +67,7 @@ export function SectionCards() {
                 {formatValue(card.value, card.format)}
               </CardTitle>
               <CardAction>
-                <Badge variant="outline" className="p-3!">
+                <Badge variant="ghost" className="text-[8px] lg:text-[10px]">
                   <HugeiconsIcon
                     icon={AnalyticsUpIcon}
                     size={20}

@@ -1,9 +1,9 @@
-import type { Category } from "@/types/product";
+import type { CategoryItem } from "@/types/product";
 
 // Placeholder imagery via picsum.photos seeded URLs — deterministic per slug,
 // so each category keeps the same image across reloads. Swap for real
 // product photography (or a CMS) once that's wired up.
-export const categories: Category[] = [
+export const categories: CategoryItem[] = [
   {
     id: "bags",
     slug: "bags",

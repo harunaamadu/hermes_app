@@ -8,13 +8,14 @@ import { StarIcon } from "@hugeicons/core-free-icons";
 interface RatingStarsProps {
   rating: number; // 0-5
   reviewCount?: number;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
   className?: string;
 }
 
 const SIZE_CLASS = {
   sm: "size-3",
   md: "size-4",
+  lg: "size-5",
 };
 
 export function RatingStars({
@@ -28,7 +29,7 @@ export function RatingStars({
   const hasHalf = clamped - fullStars >= 0.5;
 
   return (
-    <div className={cn("flex items-center gap-1", className)}>
+    <div className={cn("flex items-center gap-1.5", className)}>
       <div className="flex items-center">
         {Array.from({ length: 5 }).map((_, i) => {
           const filled = i < fullStars;

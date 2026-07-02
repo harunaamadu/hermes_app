@@ -49,12 +49,27 @@ export interface ProductVariant {
   inStock: boolean;
 }
 
+// Real category taxonomy (Bags, Shoes, Accessories, ...) is data-driven —
+// editors add/rename/remove categories in Sanity, so this can't be a fixed
+// union. `ProductCategory` above stays as-is; it's a separate, smaller list
+// used only by the search bar's category dropdown.
+export interface Category {
+  id: string;
+  slug: string;
+  title: string;
+  image: string;
+  href?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
   slug: string;
-  brand: string;
-  category: ProductCategory;
+  brand?: string;
+  /** Category slug, e.g. "bags" — references a Category, not the fixed ProductCategory union. */
+  category: string;
+  /** Category document id — only populated by the Sanity-backed fetch layer, used to preselect the category in edit forms. */
+  categoryId?: string;
 
   image: ProductImage;
   images?: string[];
@@ -74,6 +89,7 @@ export interface Product {
   variants?: ProductVariant[];
 
   inStock?: boolean;
+  stockCount?: number;
   freeShipping?: boolean;
   deliveryDays?: number;
 
@@ -166,6 +182,7 @@ export interface ProductItem {
 export interface CategoryItem {
   id: string;
   title: string;
+  slug?: string;
   image: string;
   href?: string;
 }

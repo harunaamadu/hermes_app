@@ -1,19 +1,21 @@
 import React from "react";
-import { MOCK_PRODUCTS } from "@/components/home/shop-sections/data";
-import ProductCard from "@/components/product/ProductCard";
 import Container from "@/components/common/Container";
+import { getAllProducts } from "@/sanity/lib/fetch";
+import { isSanityConfigured } from "@/sanity/env";
+import { LiveProductGrid } from "@/components/product/LiveProductGrid";
 
-export const productCards = MOCK_PRODUCTS.map((product) => (
-  <ProductCard key={product.slug} product={product} />
-));
+const ProductsSection = async () => {
+  const products = await getAllProducts();
 
-const ProductsSection = () => {
   return (
     <Container
       as="section"
       className="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6 min-h-full w-full pb-12"
     >
-      {productCards}
+      <LiveProductGrid
+        initialProducts={products}
+        isSanityConfigured={isSanityConfigured}
+      />
     </Container>
   );
 };

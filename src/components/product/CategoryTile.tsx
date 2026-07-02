@@ -1,10 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import type { Category } from "@/types/product";
+import type { CategoryItem } from "@/types/product";
 
 interface CategoryTileProps {
-  category: Category;
+  category: CategoryItem;
   className?: string;
 }
 

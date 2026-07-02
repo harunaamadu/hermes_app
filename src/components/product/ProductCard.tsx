@@ -96,7 +96,6 @@ const ProductCard = ({
           <PriceTag
             price={product.price}
             originalPrice={product.originalPrice}
-            currency={product.currency}
             className="mt-2"
           />
 
